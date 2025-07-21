@@ -9,10 +9,14 @@ router = APIRouter(tags=["Veículos"])
 
 
 class VehicleBase(BaseModel):
-    marca: str
-    modelo: str
+    marca: str = Field(..., min_length=1, description="Marca não pode ser nulo ou vazio")
+    modelo: str = Field(..., min_length=1, description="Modelo não pode ser nulo ou vazio")
     ano: int
     preco: float
+    cor: str
+    placa: str
+    renavan: str = Field(..., min_length=11, description="Renavan não pode ser nulo ou vazio")
+    chassi: str = Field(..., min_length=17, description="Chassi não pode ser nulo ou vazio")
     vendido: bool = False
 
 
@@ -21,9 +25,6 @@ class VehicleCreate(VehicleBase):
 
 
 class VehicleUpdate(BaseModel):
-    marca: str = Field(None)
-    modelo: str = Field(None)
-    ano: int = Field(None)
     preco: float = Field(None)
     vendido: bool = Field(None)
 
@@ -46,7 +47,8 @@ def get_db():
 @router.post("/veiculos/", response_model=VehicleResponse, summary="Cadastrar veículo")
 def create_vehicle(vehicle: VehicleCreate, db: Session = Depends(get_db)):
     """
-    Cadastrar um veículo para venda (Marca, modelo, ano, cor, preço).
+    Cadastrar um veículo para venda.
+    * Marca, Modelo, Chassi e Renavan sâo campos obrigatórios.
     """
     db_vehicle = Vehicle(**vehicle.dict())
     db.add(db_vehicle)
