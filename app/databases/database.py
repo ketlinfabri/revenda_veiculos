@@ -2,7 +2,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
-from app.models.models import Base, Vehicle, User
+from app.models.models import Base, Vehicle
 
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -28,7 +28,8 @@ def init_db():
                     placa="ABC1234",
                     renavan="12345678901",
                     chassi="9BWZZZ377VT004251",
-                    vendido=False
+                    vendido=False,
+                    id_comprador=""
                 ),
                 Vehicle(
                     marca="Chevrolet",
@@ -39,18 +40,19 @@ def init_db():
                     placa="XYZ9876",
                     renavan="98765432100",
                     chassi="9BWZZZ377VT004252",
-                    vendido=False
+                    vendido=False,
+                    id_comprador=""
                 )
             ]
             db.add_all(vehicles)
-
-        # if db.query(User).count() == 0:
-        #     users = [
-        #         User(nome="Admin", email="admin@example.com"),
-        #         User(nome="João", email="joao@example.com")
-        #     ]
-        #     db.add_all(users)
-
         db.commit()
+    finally:
+        db.close()
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
     finally:
         db.close()

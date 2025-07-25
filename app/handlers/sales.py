@@ -1,15 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.models.models import Vehicle, User
-from app.auth.auth import get_current_user, get_db
-from pydantic import BaseModel
+
+from app.auth.auth import validar_token_cognito
+from app.databases.database import get_db
+from app.models.models import Vehicle, PurchaseResponse
+
 
 router = APIRouter(tags=["Compra de Veículos"])
 
-
-class PurchaseResponse(BaseModel):
-    mensagem: str
-    veiculo: str
 
 @router.post(
     "/comprar/{vehicle_id}",
@@ -18,20 +16,32 @@ class PurchaseResponse(BaseModel):
 )
 def buy_vehicle(
     vehicle_id: int,
-    db: Session = Depends(get_db),
-    token: User = Depends(get_current_user)
+    token: str,
+    db: Session = Depends(get_db)
 ):
     """
-    Compra de veículo. Requer autenticação via JWT.
+    Compra de veículo requer autenticação.
     """
-    vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id, Vehicle.vendido == False).first()
-    if not vehicle:
-        raise HTTPException(status_code=404, detail="Veículo indisponível ou já vendido")
 
-    vehicle.vendido = True
-    db.commit()
+    try:
+        dados = validar_token_cognito(token)
+        print("Token válido. Dados:", dados)
 
-    return {
-        "mensagem": f"Veículo '{vehicle.modelo}' comprado com sucesso",
-        "veiculo": vehicle.modelo
-    }
+        vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id, Vehicle.vendido == False).first()
+        if not vehicle:
+            raise HTTPException(status_code=404, detail="Veículo indisponível ou já vendido")
+
+        vehicle.vendido = True
+        vehicle.id_comprador = dados['sub']
+        db.commit()
+
+        return {
+            "mensagem": f"Veículo {vehicle.modelo} comprado com sucesso",
+            "veiculo": vehicle.modelo
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"Erro ao validar token: {e}")
+
+
+

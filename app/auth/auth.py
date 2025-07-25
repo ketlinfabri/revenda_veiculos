@@ -1,60 +1,35 @@
-# auth.py
-from datetime import datetime, timedelta
-from typing import Optional
-from jose import JWTError, jwt
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
-from app.databases.database import SessionLocal
-from app.models.models import User
-import hashlib
+from jose import jwt, JWTError
+import requests
 
-# Configurações JWT
-SECRET_KEY = "sua_chave_super_secreta"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+from config import Config
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+user_pool_id = Config.get("USER_POOL_ID")
+cognito_region = Config.get("COGNITO_REGION")
+client_id = Config.get("CLIENT_ID")
+cognito_issuer = f'https://cognito-idp.{cognito_region}.amazonaws.com/{user_pool_id}'
+jwks_url = f'{cognito_issuer}/.well-known/jwks.json'
 
 
-def get_db():
-    db = SessionLocal()
+def validar_token_cognito(token: str):
     try:
-        yield db
-    finally:
-        db.close()
+        headers = jwt.get_unverified_header(token)
+        kid = headers['kid']
 
+        jwks = requests.get(jwks_url).json()
+        key = next((k for k in jwks['keys'] if k['kid'] == kid), None)
 
-def get_password_hash(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
+        if key is None:
+            raise Exception('Chave pública não encontrada.')
 
+        payload = jwt.decode(
+            token,
+            key,
+            algorithms=['RS256'],
+            audience=client_id,
+            issuer=cognito_issuer
+        )
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return get_password_hash(plain_password) == hashed_password
+        return payload
 
-
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Token inválido ou ausente",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: str = payload.get("sub")
-        if user_id is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-
-    user = db.query(User).filter(User.id == int(user_id)).first()
-    if not user:
-        raise credentials_exception
-    return user
+    except JWTError as e:
+        raise Exception(f'Token inválido: {str(e)}')

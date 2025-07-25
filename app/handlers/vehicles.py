@@ -1,47 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from app.databases.database import SessionLocal
-from app.models.models import Vehicle
-from pydantic import BaseModel, Field
+
+from app.databases.database import get_db
+from app.models.models import Vehicle, VehicleCreate, VehicleResponse, VehicleUpdate
 
 router = APIRouter(tags=["Veículos"])
-
-
-class VehicleBase(BaseModel):
-    marca: str = Field(..., min_length=1, description="Marca não pode ser nulo ou vazio")
-    modelo: str = Field(..., min_length=1, description="Modelo não pode ser nulo ou vazio")
-    ano: int
-    preco: float
-    cor: str
-    placa: str
-    renavan: str = Field(..., min_length=11, description="Renavan não pode ser nulo ou vazio")
-    chassi: str = Field(..., min_length=17, description="Chassi não pode ser nulo ou vazio")
-    vendido: bool = False
-
-
-class VehicleCreate(VehicleBase):
-    pass
-
-
-class VehicleUpdate(BaseModel):
-    preco: float = Field(None)
-    vendido: bool = Field(None)
-
-
-class VehicleResponse(VehicleBase):
-    id: int
-
-    class Config:
-        from_attributes = True
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @router.post("/veiculos/", response_model=VehicleResponse, summary="Cadastrar veículo")

@@ -1,3 +1,4 @@
+from pydantic import BaseModel, Field
 from sqlalchemy import Column, Integer, String, Float, Boolean
 from sqlalchemy.orm import declarative_base
 
@@ -17,12 +18,39 @@ class Vehicle(Base):
     renavan = Column(String, nullable=False)
     chassi = Column(String, nullable=False, unique=True)
     vendido = Column(Boolean, default=False)
+    id_comprador = Column(String, nullable=True)
 
 
-class User(Base):
-    __tablename__ = "users"
+class VehicleBase(BaseModel):
+    marca: str = Field(..., min_length=1, description="Marca não pode ser nulo ou vazio")
+    modelo: str = Field(..., min_length=1, description="Modelo não pode ser nulo ou vazio")
+    ano: int
+    preco: float
+    cor: str
+    placa: str
+    renavan: str = Field(..., min_length=11, description="Renavan não pode ser nulo ou vazio")
+    chassi: str = Field(..., min_length=17, description="Chassi não pode ser nulo ou vazio")
+    vendido: bool = False
+    id_comprador: str
 
-    id = Column(Integer, primary_key=True, index=True)
-    nome = Column(String, nullable=False)
-    email = Column(String, unique=True, index=True, nullable=False)
-    senha = Column(String, nullable=False)
+
+class VehicleCreate(VehicleBase):
+    pass
+
+
+class VehicleUpdate(BaseModel):
+    preco: float = Field(None)
+    vendido: bool = Field(None)
+    id_comprador: str = Field(None)
+
+
+class VehicleResponse(VehicleBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+
+class PurchaseResponse(BaseModel):
+    mensagem: str
+    veiculo: str
