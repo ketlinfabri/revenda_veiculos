@@ -18,9 +18,18 @@ API REST desenvolvida com **FastAPI** para gerenciar um sistema de revenda de ve
 ## 🚀 Como executar
 
 #### Subir os serviços (API + Banco de Dados)
-* docker-compose up --build
-* Acesse a API em: http://localhost:8000/docs
-* Acesse o BD Postgres em http://localhost:5432. Sugestâo: executar pela PGAdmin, com as credenciais:
+
+Para instalar as dependências necessárias, execute o seguinte comando apontando para o arquivo requirements.txt:
+```bash
+pip install -r requirements.txt
+````
+Após, execute o comando no terminal:
+```bash
+docker-compose up --build
+````
+
+Acesse a API em: http://localhost:8000/docs
+Acesse o BD Postgres em http://localhost:5432. Sugestâo: executar pela PGAdmin, com as credenciais:
   * Para fins de teste, deixei dois veículos que serâo cadastrados na inicialização do banco.
 
 É necessário que o serviço de Auth tenha sido previamente subido e executado em http://localhost:8080/docs para cadastro e obtentação do token do usário.
