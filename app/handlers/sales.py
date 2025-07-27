@@ -1,22 +1,22 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.auth.auth import validar_token_cognito
 from app.databases.database import get_db
-from app.models.models import Vehicle, PurchaseResponse
-
+from app.models.models import Vehicle, PurchaseResponse, Purchase, TipoPagamentoEnum
 
 router = APIRouter(tags=["Compra de Veículos"])
 
 
 @router.post(
-    "/comprar/{vehicle_id}",
+    "/comprar/{id_veiculo}",
     response_model=PurchaseResponse,
     summary="Comprar um veículo (autenticado)"
 )
 def buy_vehicle(
     vehicle_id: int,
-    token: str,
+    token: str = Query(description="Authorization: Bearer"),
+    tp_pagamento: TipoPagamentoEnum = Query(description="Tipo Pagamento"),
     db: Session = Depends(get_db)
 ):
     """
@@ -32,12 +32,19 @@ def buy_vehicle(
             raise HTTPException(status_code=404, detail="Veículo indisponível ou já vendido")
 
         vehicle.vendido = True
-        vehicle.id_comprador = dados['sub']
+
+        purchase = db.query(Purchase)
+
+        purchase.id_comprador = dados['sub']
+        purchase.id_veiculo = vehicle.id
+        purchase.tipo_pagamento = tp_pagamento
+
         db.commit()
 
         return {
-            "mensagem": f"Veículo {vehicle.modelo} comprado com sucesso",
-            "veiculo": vehicle.modelo
+            "id_comprador": dados['sub'],
+            "veiculo": f"{vehicle.marca} {vehicle.modelo}, vendido por R${vehicle.preco} reais",
+            "tipo_pagamento": tp_pagamento.value
         }
 
     except Exception as e:

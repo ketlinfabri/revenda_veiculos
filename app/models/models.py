@@ -1,6 +1,9 @@
+import enum
+from datetime import datetime
+
 from pydantic import BaseModel, Field
-from sqlalchemy import Column, Integer, String, Float, Boolean
-from sqlalchemy.orm import declarative_base
+from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, DateTime, Enum
+from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
 
@@ -18,7 +21,8 @@ class Vehicle(Base):
     renavan = Column(String, nullable=False)
     chassi = Column(String, nullable=False, unique=True)
     vendido = Column(Boolean, default=False)
-    id_comprador = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
 
 class VehicleBase(BaseModel):
@@ -31,7 +35,8 @@ class VehicleBase(BaseModel):
     renavan: str = Field(..., min_length=11, description="Renavan não pode ser nulo ou vazio")
     chassi: str = Field(..., min_length=17, description="Chassi não pode ser nulo ou vazio")
     vendido: bool = False
-    id_comprador: str
+    created_at: datetime
+    updated_at: datetime
 
 
 class VehicleCreate(VehicleBase):
@@ -40,8 +45,12 @@ class VehicleCreate(VehicleBase):
 
 class VehicleUpdate(BaseModel):
     preco: float = Field(None)
-    vendido: bool = Field(None)
-    id_comprador: str = Field(None)
+    marca: str = Field(..., min_length=1, description="Marca não pode ser nulo ou vazio")
+    modelo: str = Field(..., min_length=1, description="Modelo não pode ser nulo ou vazio")
+    ano: int
+    preco: float
+    cor: str
+    placa: str
 
 
 class VehicleResponse(VehicleBase):
@@ -51,6 +60,33 @@ class VehicleResponse(VehicleBase):
         from_attributes = True
 
 
+class TipoPagamentoEnum(enum.Enum):
+    CARTAO = "cartao"
+    BOLETO = "boleto"
+    PIX = "pix"
+
+
+class Purchase(Base):
+    __tablename__ = "purchase"
+
+    id = Column(Integer, primary_key=True, index=True)
+    id_veiculo = Column(Integer, ForeignKey('vehicles.id'), nullable=False)
+    id_comprador = Column(String, nullable=False)
+    tipo_pagamento = Column(Enum(TipoPagamentoEnum), nullable=False)
+    dt_compra = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class PurchaseBase(BaseModel):
+    id_veiculo: int
+    id_comprador: str
+    tipo_pagamento: TipoPagamentoEnum
+
+
 class PurchaseResponse(BaseModel):
-    mensagem: str
+    id_comprador: str
     veiculo: str
+    tipo_pagamento: str
+
+    class Config:
+        from_attributes = True
+

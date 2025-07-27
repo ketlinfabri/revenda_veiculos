@@ -12,7 +12,7 @@ SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 
 def init_db():
-    # Base.metadata.drop_all(bind=engine)
+    #Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
 
     db = SessionLocal()
@@ -28,8 +28,7 @@ def init_db():
                     placa="ABC1234",
                     renavan="12345678901",
                     chassi="9BWZZZ377VT004251",
-                    vendido=False,
-                    id_comprador=""
+                    vendido=False
                 ),
                 Vehicle(
                     marca="Chevrolet",
@@ -40,8 +39,7 @@ def init_db():
                     placa="XYZ9876",
                     renavan="98765432100",
                     chassi="9BWZZZ377VT004252",
-                    vendido=False,
-                    id_comprador=""
+                    vendido=False
                 )
             ]
             db.add_all(vehicles)

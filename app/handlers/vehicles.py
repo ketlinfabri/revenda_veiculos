@@ -21,7 +21,7 @@ def create_vehicle(vehicle: VehicleCreate, db: Session = Depends(get_db)):
     return db_vehicle
 
 
-@router.put("/veiculos/{vehicle_id}", response_model=VehicleResponse, summary="Editar dados veículo")
+@router.put("/veiculos/{id_veiculo}", response_model=VehicleResponse, summary="Editar dados veículo")
 def update_vehicle(vehicle_id: int, vehicle: VehicleUpdate, db: Session = Depends(get_db)):
     """
     Editar os dados do veículo.
