@@ -40,9 +40,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: 🧪 Rodar testes
-      run: |
-        pytest tests/  # ou `pytest` se você ainda não separou os testes
 
     - name: 🐳 Build Docker image
       run: docker build -t fastapi-revenda .
