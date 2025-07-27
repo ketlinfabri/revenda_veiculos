@@ -20,12 +20,10 @@ API REST desenvolvida com **FastAPI** para gerenciar um sistema de revenda de ve
 #### Subir os serviços (API + Banco de Dados)
 * docker-compose up --build
 * Acesse a API em: http://localhost:8000/docs
-* Acesse o BD Postgres em http://localhost:5432. Sugestâo: executar pela PGAdmin, com as credenciais: 
-  * USER: postgres
-  * PASSWORD: postgres
-  * DB: revenda_veiculos 
+* Acesse o BD Postgres em http://localhost:5432. Sugestâo: executar pela PGAdmin, com as credenciais:
   * Para fins de teste, deixei dois veículos que serâo cadastrados na inicialização do banco.
 
+É necessário que o serviço de Auth tenha sido previamente subido e executado em http://localhost:8080/docs para cadastro e obtentação do token do usário.
 
 ---
 
@@ -65,6 +63,9 @@ Authorization: Bearer <token_cognito>
 - Requer autenticação do usuário através de um token válido do Cognito
 
 ---
+
+## ‍💻 Repositório
+   https://github.com/ketlinfabri/revenda_veiculos
 
 ## ‍💻 Desenvolvido por
 
