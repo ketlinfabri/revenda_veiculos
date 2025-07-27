@@ -1,96 +1,96 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: postgres-vehicle-namespace
-  labels:
-    environment: production
-    app: postgres
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: postgres-secret
-  namespace: postgres-vehicle-namespace
-  labels:
-    app: postgres
-data:
-  POSTGRES_USER: ${POSTGRES_USER}
-  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-  POSTGRES_DB: ${POSTGRES_DB}
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: postgres-deployment
-  namespace: postgres-vehicle-namespace
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: postgres
-  template:
-    metadata:
-      labels:
-        app: postgres
-    spec:
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-              - matchExpressions:
-                  - key: role
-                    operator: In
-                    values:
-                      - database-vehicle  # Nome do label do node
-      containers:
-        - name: postgres
-          image: 'postgres:15'
-          imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 5432
-          envFrom:
-            - configMapRef:
-                name: postgres-secret
-          volumeMounts:
-            - name: sql-files
-              mountPath: /docker-entrypoint-initdb.d
-      volumes:
-        - name: sql-files
-          configMap:
-            name: database-sql
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: postgres-service
-  namespace: postgres-vehicle-namespace
-spec:
-  selector:
-    app: postgres
-  ports:
-    - protocol: TCP
-      port: 5432
-      targetPort: 5432
-  type: LoadBalancer
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: database-sql
-  namespace: postgres-vehicle-namespace
-data:
-  init-db1.sql: |
-    create table if not exists public.vehicle(
-      id integer,
-      marca varchar(100) not null,
-      modelo varchar(100) not null,
-      ano integer,
-      cor varchar(50),
-      preco float not null,
-      renavan varchar(15) not null,
-      chassi varchar(20) not null,
-      vendido boolean,
-      created_at timestamp default current_timestamp,
-      updated_at timestamp default current_timestamp,
-      constraint pk_vehicle primary key (id)
-    );
+#apiVersion: v1
+#kind: Namespace
+#metadata:
+#  name: postgres-vehicle-namespace
+#  labels:
+#    environment: production
+#    app: postgres
+#---
+#apiVersion: v1
+#kind: ConfigMap
+#metadata:
+#  name: postgres-secret
+#  namespace: postgres-vehicle-namespace
+#  labels:
+#    app: postgres
+#data:
+#  POSTGRES_USER: ${POSTGRES_USER}
+#  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+#  POSTGRES_DB: ${POSTGRES_DB}
+#---
+#apiVersion: apps/v1
+#kind: Deployment
+#metadata:
+#  name: postgres-deployment
+#  namespace: postgres-vehicle-namespace
+#spec:
+#  replicas: 1
+#  selector:
+#    matchLabels:
+#      app: postgres
+#  template:
+#    metadata:
+#      labels:
+#        app: postgres
+#    spec:
+#      affinity:
+#        nodeAffinity:
+#          requiredDuringSchedulingIgnoredDuringExecution:
+#            nodeSelectorTerms:
+#              - matchExpressions:
+#                  - key: role
+#                    operator: In
+#                    values:
+#                      - database-vehicle  # Nome do label do node
+#      containers:
+#        - name: postgres
+#          image: 'postgres:15'
+#          imagePullPolicy: IfNotPresent
+#          ports:
+#            - containerPort: 5432
+#          envFrom:
+#            - configMapRef:
+#                name: postgres-secret
+#          volumeMounts:
+#            - name: sql-files
+#              mountPath: /docker-entrypoint-initdb.d
+#      volumes:
+#        - name: sql-files
+#          configMap:
+#            name: database-sql
+#---
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: postgres-service
+#  namespace: postgres-vehicle-namespace
+#spec:
+#  selector:
+#    app: postgres
+#  ports:
+#    - protocol: TCP
+#      port: 5432
+#      targetPort: 5432
+#  type: LoadBalancer
+#---
+#apiVersion: v1
+#kind: ConfigMap
+#metadata:
+#  name: database-sql
+#  namespace: postgres-vehicle-namespace
+#data:
+#  init-db1.sql: |
+#    create table if not exists public.vehicle(
+#      id integer,
+#      marca varchar(100) not null,
+#      modelo varchar(100) not null,
+#      ano integer,
+#      cor varchar(50),
+#      preco float not null,
+#      renavan varchar(15) not null,
+#      chassi varchar(20) not null,
+#      vendido boolean,
+#      created_at timestamp default current_timestamp,
+#      updated_at timestamp default current_timestamp,
+#      constraint pk_vehicle primary key (id)
+#    );
