@@ -124,15 +124,6 @@ jobs:
           echo "ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}" >> $GITHUB_ENV
 
 
-      # Etapa 6: Substituir variáveis nos arquivos Kubernetes
-      - name: Substitute variables in deployment.yaml
-        run: |
-          envsubst < k8s/deployment.yaml > k8s/postgresql-purchase-kubernetes-template.yaml
-
-      - name: Substitute variables in service.yaml
-        run: |
-          envsubst < k8s/service.yaml > k8s/postgresql-vehicles-kubernetes-template.yaml
-
       # Etapa 7: Aplicar Kubernetes manifests
       - name: Apply Kubernetes manifests
         run: |
