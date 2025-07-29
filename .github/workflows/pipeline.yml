@@ -127,5 +127,5 @@ jobs:
       # Etapa 7: Aplicar Kubernetes manifests
       - name: Apply Kubernetes manifests
         run: |
-          kubectl apply -f k8s/postgresql-purchase-kubernetes-template.yaml
-          kubectl apply -f k8s/postgresql-vehicles-kubernetes-template.yaml
+          kubectl apply -f k8s/postgresql-purchase-kubernetes-template.yml
+          kubectl apply -f k8s/postgresql-vehicles-kubernetes-template.yml
