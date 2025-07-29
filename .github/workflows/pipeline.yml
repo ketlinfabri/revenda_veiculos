@@ -129,3 +129,5 @@ jobs:
         run: |
           kubectl apply -f k8s/postgresql-purchase-kubernetes-template.yml
           kubectl apply -f k8s/postgresql-vehicles-kubernetes-template.yml
+          kubectl apply -f k8s/fastapi-service.yml
+
